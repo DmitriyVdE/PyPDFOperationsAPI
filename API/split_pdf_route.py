@@ -1,8 +1,8 @@
-import os, sys, urllib.request
+import os, sys, datetime, urllib.request
 from flask_config import app
 from flask import Flask, request, redirect, jsonify, Blueprint
 from werkzeug.utils import secure_filename
-from split_pdf_operations import generate_file_name, split_pdf
+from split_pdf_operations import generate_file_name, create_dir, split_pdf
 
 split_pdf_route = Blueprint('split_pdf_route', __name__)
 
@@ -25,8 +25,9 @@ def upload_file():
 		return resp
 	if file and allowed_file(file.filename):
 		filename = generate_file_name()
-		file.save(os.path.join(app.config['UPLOAD_FOLDER'] + filename.split('.')[0], filename))
-		return split_pdf(app.config['UPLOAD_FOLDER'] + filename.split('.')[0] + '/' + filename)
+		current_dir = create_dir(filename)
+		file.save(os.path.join(current_dir, '{}.pdf'.format(filename)))
+		return split_pdf(current_dir, filename)
 	else:
 		resp = jsonify({'message' : 'Allowed file types are: pdf'})
 		resp.status_code = 400
