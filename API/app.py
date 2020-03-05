@@ -1,13 +1,9 @@
 from flask import Flask
 from flask import request, jsonify
+from flask_config import app
+from split_pdf_route import split_pdf_route
 
-UPLOAD_FOLDER = 'uploads/'
-
-app = Flask(__name__)
-app.secret_key = "secret key"
-app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
-app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024
-app.config["DEBUG"] = True
+app.register_blueprint(split_pdf_route)
 
 @app.route('/')
 @app.route('/home')
