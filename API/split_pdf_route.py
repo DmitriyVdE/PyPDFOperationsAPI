@@ -1,6 +1,7 @@
 import os, sys, datetime, urllib.request
 from flask_config import app
 from flask import Flask, request, redirect, jsonify, Blueprint
+from api_key_check import require_apikey
 from werkzeug.utils import secure_filename
 from split_pdf_operations import generate_file_name, create_dir, split_pdf
 
@@ -12,6 +13,7 @@ def allowed_file(filename):
 	return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 @split_pdf_route.route('/api/v1/operations/splitpdf', methods=['POST'])
+@require_apikey
 def upload_file():
 	# check if the post request has the file part
 	if 'file' not in request.files:

@@ -6,6 +6,7 @@ from split_pdf_route import split_pdf_route
 app.register_blueprint(split_pdf_route)
 
 @app.route('/')
+@app.route('/api')
 @app.route('/home')
 @app.route('/index')
 def home():
