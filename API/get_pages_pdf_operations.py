@@ -20,7 +20,7 @@ def create_dir(filename):
   Path(new_dir).mkdir(parents=True, exist_ok=True)
   return new_dir
 
-def split_pdf(working_dir, filename):
+def get_pages_pdf(working_dir, filename):
   iterate_over_file(working_dir, filename)
   memory_file = BytesIO()
   with open('{}.zip'.format(filename), 'rb') as fin:

@@ -1,9 +1,13 @@
 from flask import Flask
+#!/use/bin/python
+
 from flask import request, jsonify
 from flask_config import app
 from split_pdf_route import split_pdf_route
+from get_pages_pdf_route import get_pages_pdf_route
 
 app.register_blueprint(split_pdf_route)
+app.register_blueprint(get_pages_pdf_route)
 
 @app.route('/')
 @app.route('/api')
