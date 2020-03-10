@@ -4,7 +4,8 @@ import os, sys, datetime, urllib.request
 from flask_config import app
 from flask import Flask, request, redirect, jsonify, Blueprint
 from api_key_check import require_apikey
-from split_pdf_operations import generate_file_name, create_dir, split_pdf
+from global_functions import generate_file_name, create_upload_dir
+from split_pdf_operations import split_pdf
 
 split_pdf_route = Blueprint('split_pdf_route', __name__)
 
@@ -28,7 +29,7 @@ def upload_file():
     return resp
   if file and allowed_file(file.filename):
     filename = generate_file_name()
-    current_dir = create_dir(filename)
+    current_dir = create_upload_dir(filename)
     file.save(os.path.join(current_dir, '{}.pdf'.format(filename)))
     return split_pdf(current_dir, filename)
   else:
