@@ -32,7 +32,6 @@ def upload_file():
     file.save(os.path.join(current_dir, '{}.pdf'.format(filename)))
     pages = list(map(int, request.args.get('pages').split(',')))
     returntype = request.args.get('returntype')
-    print(request.args)
     return get_pages_pdf(current_dir, filename, pages, returntype)
   else:
     resp = jsonify({'message' : 'Allowed file types are: pdf'})
