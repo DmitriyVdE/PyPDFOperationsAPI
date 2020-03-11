@@ -36,7 +36,6 @@ def extract_pages(filename, pages):
         pdf_writer.write(out)
 
 def merge_pdf_pages():
-  print('merging to pdf')
   pdf_merger = PdfFileMerger()
   files = [f for f in os.listdir('.') if os.path.isfile(f)]
   for f in files:
@@ -46,9 +45,9 @@ def merge_pdf_pages():
         pdf_merger.write(out)
 
 def zip_pdf_pages():
-  print('zipping pages')
   zipped_pdfs = ZipFile('pages.zip', 'w')
   files = [f for f in os.listdir('.') if os.path.isfile(f)]
+  files.sort()
   for f in files:
     if ('page_' in f):
       zipped_pdfs.write(f)

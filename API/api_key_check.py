@@ -10,5 +10,5 @@ def require_apikey(view_function):
     if request.args.get('key') and request.args.get('key') == app.secret_key:
       return view_function(*args, **kwargs)
     else:
-      abort(401)
+      abort(403)
   return decorated_function
