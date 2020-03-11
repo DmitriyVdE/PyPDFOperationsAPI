@@ -5,32 +5,52 @@ from io import BytesIO
 from pathlib import Path
 from flask_config import app
 from flask import send_file
-from PyPDF2 import PdfFileReader, PdfFileWriter
+from PyPDF2 import PdfFileReader, PdfFileWriter, PdfFileMerger
 from zipfile import ZipFile
 
-def get_pages_pdf(working_dir, filename):
-  iterate_over_file(working_dir, filename)
+def get_pages_pdf(working_dir, filename, pages, returntype):
+  os.chdir(working_dir)
+  extract_pages(filename, pages)
+  
+  if (returntype == 'pdf'):
+    merge_pdf_pages()
+
+  if (returntype == 'zip'):
+    zip_pdf_pages()
+  
   memory_file = BytesIO()
-  with open('{}.zip'.format(filename), 'rb') as fin:
+  with open('pages.{}'.format(returntype), 'rb') as fin:
     memory_file = BytesIO(fin.read())
   memory_file.seek(0)
   os.chdir(os.path.dirname(os.path.realpath(__file__)))
-  return send_file(memory_file, attachment_filename='{}.zip'.format(filename), as_attachment=True)
+  return send_file(memory_file, attachment_filename='pages.{}'.format(returntype), as_attachment=True)
 
-def iterate_over_file(working_dir, filename):
-  os.chdir(working_dir)
-  
-  zipped_pdfs = ZipFile('{}.zip'.format(filename), 'w')
+def extract_pages(filename, pages):
   pdf = PdfFileReader('{}.pdf'.format(filename))
-  
   for page in range(pdf.getNumPages()):
-    pdf_writer = PdfFileWriter()
-    pdf_writer.addPage(pdf.getPage(page))
-    output_filename = 'page_{}.pdf'.format(page + 1)
-    
-    with open(output_filename, 'wb') as out:
-      pdf_writer.write(out)
-    
-    zipped_pdfs.write(output_filename)
-  
+    if (page + 1 in pages):
+      pdf_writer = PdfFileWriter()
+      pdf_writer.addPage(pdf.getPage(page))
+      output_filename = 'page_{}.pdf'.format(page + 1)
+      with open(output_filename, 'wb') as out:
+        pdf_writer.write(out)
+
+def merge_pdf_pages():
+  print('merging to pdf')
+  pdf_merger = PdfFileMerger()
+  files = [f for f in os.listdir('.') if os.path.isfile(f)]
+  for f in files:
+    if ('page_' in f):
+      pdf_merger.append(f)
+  with open('pages.pdf', 'wb') as out:
+        pdf_merger.write(out)
+
+def zip_pdf_pages():
+  print('zipping pages')
+  zipped_pdfs = ZipFile('pages.zip', 'w')
+  files = [f for f in os.listdir('.') if os.path.isfile(f)]
+  for f in files:
+    if ('page_' in f):
+      zipped_pdfs.write(f)
+      
   zipped_pdfs.close()

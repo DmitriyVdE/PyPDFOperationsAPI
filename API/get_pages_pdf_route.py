@@ -17,8 +17,6 @@ def allowed_file(filename):
 @get_pages_pdf_route.route('/api/v1/operations/getpagespdf', methods=['POST'])
 @require_apikey
 def upload_file():
-  print(request.files)
-  # check if the post request has the file part
   if 'file' not in request.files:
     resp = jsonify({'message' : 'No file part in the request'})
     resp.status_code = 400
@@ -32,10 +30,10 @@ def upload_file():
     filename = generate_file_name()
     current_dir = create_upload_dir(filename)
     file.save(os.path.join(current_dir, '{}.pdf'.format(filename)))
-    resp = jsonify({'message' : 'Work in progress'})
-    resp.status_code = 200
-    return resp
-    #return get_pages_pdf(current_dir, filename)
+    pages = list(map(int, request.args.get('pages').split(',')))
+    returntype = request.args.get('returntype')
+    print(request.args)
+    return get_pages_pdf(current_dir, filename, pages, returntype)
   else:
     resp = jsonify({'message' : 'Allowed file types are: pdf'})
     resp.status_code = 400
