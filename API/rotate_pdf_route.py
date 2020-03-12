@@ -15,7 +15,7 @@ AMOUNT_VALUES = set(['1', '2', '3'])
 @rotate_pdf_route.route('/api/v1/operations/rotatepdf', methods=['POST'])
 @require_apikey
 def upload_file():
-  if 'amount' not in request.args or request.args['amount'] not in AMOUNT_VALUES:
+  if 'rotation' not in request.args or request.args['rotation'] not in AMOUNT_VALUES:
     resp = jsonify({'message' : 'No or invalid amount in the request'})
     resp.status_code = 400
     return resp
@@ -32,8 +32,8 @@ def upload_file():
     filename = generate_file_name('rotate')
     current_dir = create_upload_dir(filename)
     file.save(os.path.join(current_dir, '{}.pdf'.format(filename)))
-    amount = request.args.get('amount')
-    return rotate_pdf(current_dir, filename, amount)
+    rotation = request.args.get('rotation')
+    return rotate_pdf(current_dir, filename, rotation)
   else:
     resp = jsonify({'message' : 'Allowed file types are: pdf'})
     resp.status_code = 400
