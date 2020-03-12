@@ -26,9 +26,9 @@ def upload_file():
     return resp
   if file and allowed_file(file.filename, ALLOWED_EXTENSIONS):
     filename = generate_file_name('split')
-    current_dir = create_upload_dir(filename)
-    file.save(os.path.join(current_dir, '{}.pdf'.format(filename)))
-    return split_pdf(current_dir, filename)
+    #current_dir = create_upload_dir(filename)
+    #file.save(os.path.join(current_dir, '{}.pdf'.format(filename)))
+    return split_pdf(file, filename)
   else:
     resp = jsonify({'message' : 'Allowed file types are: pdf'})
     resp.status_code = 400
