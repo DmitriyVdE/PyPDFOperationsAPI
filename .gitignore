@@ -4,3 +4,7 @@ API/__pycache__/
 .DS_Store
 
 API/uploads/
+
+API/.vscode/
+
+API/env/
