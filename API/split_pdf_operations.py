@@ -14,8 +14,10 @@ def split_pdf(pdffile, filename):
   
   for page in range(pdf.getNumPages()):
     pages.append(('page_{}.pdf'.format(page + 1), get_page_from_pdf(page, pdffile)))
+    with open('page_{}.pdf'.format(page), 'wb') as f:
+      f.write(get_page_from_pdf(page, pdffile).getvalue())
     
-  memory_file = BytesIO(add_files_to_zip(pages))
+  memory_file = add_files_to_zip(pages)
   memory_file.seek(0)
   return send_file(memory_file, attachment_filename='{}.zip'.format(filename), as_attachment=True)
 
@@ -23,24 +25,25 @@ def get_page_from_pdf(pagenr, pdffile):
   page_as_bytesio = BytesIO()
   pdf_writer = PdfFileWriter()
   pdf_writer.addPage(PdfFileReader(pdffile).getPage(pagenr))
+  
   PdfFileWriter().write(page_as_bytesio)
-  return page_as_bytesio.getvalue()
+  page_as_bytesio.seek(0)
+  return page_as_bytesio
 
 def add_files_to_zip(files):
   mem_zip = BytesIO()
+  zipped_pdfs = ZipFile(mem_zip, 'a', ZIP_DEFLATED)
+  
+  for f in files:
+    zipped_pdfs.writestr(f[0], f[1].getbuffer())
+    
+  zipped_pdfs.close()
+  return mem_zip
 
-  with ZipFile(mem_zip, 'a', ZIP_DEFLATED) as zf:
-    for f in files:
-      print(f[1])
-      zf.writestr(f[0], f[1])
-    zf.close()
-
-  return mem_zip.getvalue()
-
-def iterate_over_file(file, working_dir, filename):
+def iterate_over_file(pdffile, filename):
   mem_zip = BytesIO()
-  zipped_pdfs = ZipFile('{}.zip'.format(filename), 'w')
-  pdf = PdfFileReader(file)
+  zipped_pdfs = ZipFile(mem_zip, 'w', ZIP_DEFLATED)
+  pdf = PdfFileReader(pdffile)
   
   for page in range(pdf.getNumPages()):
     pdf_writer = PdfFileWriter()
@@ -53,4 +56,4 @@ def iterate_over_file(file, working_dir, filename):
     zipped_pdfs.write(output_filename)
   
   zipped_pdfs.close()
-  return mem_zip.getvalue()
+  return mem_zip
