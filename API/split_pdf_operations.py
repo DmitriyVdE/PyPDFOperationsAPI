@@ -1,8 +1,7 @@
 #!/use/bin/python
 
 import os, sys
-from io import BytesIO, StringIO
-from pathlib import Path
+from io import BytesIO
 from flask_config import app
 from flask import send_file
 from PyPDF2 import PdfFileReader, PdfFileWriter

@@ -2,54 +2,54 @@
 
 import os, sys
 from io import BytesIO
-from pathlib import Path
 from flask_config import app
 from flask import send_file
 from PyPDF2 import PdfFileReader, PdfFileWriter, PdfFileMerger
-from zipfile import ZipFile
+from zipfile import ZipFile, ZIP_DEFLATED
 
-def get_pages_pdf(working_dir, filename, pages, returntype):
-  os.chdir(working_dir)
-  extract_pages(filename, pages)
+def get_pages_pdf(pdffile, filename, pagenrs, returntype):
+  pdf = PdfFileReader(pdffile)
+  pages = []
   
+  for page in range(pdf.getNumPages()):
+    if (page + 1) in pagenrs:
+      pages.append(('page_{}.pdf'.format(page + 1), get_page_from_pdf(page, pdffile)))
+
   if (returntype == 'pdf'):
-    merge_pdf_pages()
+    memory_file = add_pages_to_pdf(pages)
 
   if (returntype == 'zip'):
-    zip_pdf_pages()
-  
-  memory_file = BytesIO()
-  with open('pages.{}'.format(returntype), 'rb') as fin:
-    memory_file = BytesIO(fin.read())
+    memory_file = add_pages_to_zip(pages)
+    
   memory_file.seek(0)
-  os.chdir(os.path.dirname(os.path.realpath(__file__)))
-  return send_file(memory_file, attachment_filename='pages.{}'.format(returntype), as_attachment=True)
+  return send_file(memory_file, attachment_filename='{}.{}'.format(filename, returntype), as_attachment=True)
 
-def extract_pages(filename, pages):
-  pdf = PdfFileReader('{}.pdf'.format(filename))
-  for page in range(pdf.getNumPages()):
-    if (page + 1 in pages):
-      pdf_writer = PdfFileWriter()
-      pdf_writer.addPage(pdf.getPage(page))
-      output_filename = 'page_{}.pdf'.format(page + 1)
-      with open(output_filename, 'wb') as out:
-        pdf_writer.write(out)
+def get_page_from_pdf(pagenr, pdffile):
+  page_as_bytesio = BytesIO()
+  pdf_writer = PdfFileWriter()
+  pdf_writer.addPage(PdfFileReader(pdffile).getPage(pagenr))
+  
+  pdf_writer.write(page_as_bytesio)
+  page_as_bytesio.seek(0)
+  return page_as_bytesio
 
-def merge_pdf_pages():
+def add_pages_to_pdf(files):
+  mem_pdf = BytesIO()
+
   pdf_merger = PdfFileMerger()
-  files = [f for f in os.listdir('.') if os.path.isfile(f)]
+  
   for f in files:
-    if ('page_' in f):
-      pdf_merger.append(f)
-  with open('pages.pdf', 'wb') as out:
-        pdf_merger.write(out)
+    pdf_merger.append(f[1])
+  
+  pdf_merger.write(mem_pdf)
+  return mem_pdf
 
-def zip_pdf_pages():
-  zipped_pdfs = ZipFile('pages.zip', 'w')
-  files = [f for f in os.listdir('.') if os.path.isfile(f)]
-  files.sort()
+def add_pages_to_zip(files):
+  mem_zip = BytesIO()
+  zipped_pdfs = ZipFile(mem_zip, 'a', ZIP_DEFLATED)
+  
   for f in files:
-    if ('page_' in f):
-      zipped_pdfs.write(f)
-      
+    zipped_pdfs.writestr(f[0], f[1].getbuffer())
+    
   zipped_pdfs.close()
+  return mem_zip

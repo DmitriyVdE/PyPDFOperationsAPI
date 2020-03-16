@@ -34,11 +34,9 @@ def upload_file():
     return resp
   if file and allowed_file(file.filename, ALLOWED_EXTENSIONS):
     filename = generate_file_name('get_pages')
-    current_dir = create_upload_dir(filename)
-    file.save(os.path.join(current_dir, '{}.pdf'.format(filename)))
-    pages = list(map(int, request.args.get('pages').split(',')))
+    pagenrs = list(map(int, request.args.get('pages').split(',')))
     returntype = request.args.get('returntype').lower()
-    return get_pages_pdf(current_dir, filename, pages, returntype)
+    return get_pages_pdf(file, filename, pagenrs, returntype)
   else:
     resp = jsonify({'message' : 'Allowed file types are: pdf'})
     resp.status_code = 400
