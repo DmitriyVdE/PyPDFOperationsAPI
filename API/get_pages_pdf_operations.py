@@ -1,11 +1,15 @@
 #!/use/bin/python
 
-import os, sys
+import os
+import sys
 from io import BytesIO
-from flask_config import app
+from zipfile import ZIP_DEFLATED, ZipFile
+
 from flask import send_file
-from PyPDF2 import PdfFileReader, PdfFileWriter, PdfFileMerger
-from zipfile import ZipFile, ZIP_DEFLATED
+from PyPDF2 import PdfFileMerger, PdfFileReader, PdfFileWriter
+
+from flask_config import app
+
 
 def get_pages_pdf(pdffile, filename, pagenrs, returntype):
   pdf = PdfFileReader(pdffile)

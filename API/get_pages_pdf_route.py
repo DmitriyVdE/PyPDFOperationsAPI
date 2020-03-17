@@ -1,11 +1,16 @@
 #!/use/bin/python
 
-import os, sys, datetime, urllib.request
-from flask_config import app
-from flask import Flask, request, redirect, jsonify, Blueprint
+import datetime
+import os
+import sys
+import urllib.request
+
+from flask import Blueprint, Flask, jsonify, redirect, request
+
 from api_key_check import require_apikey
-from global_functions import allowed_file, generate_file_name, create_upload_dir
+from flask_config import app
 from get_pages_pdf_operations import get_pages_pdf
+from global_functions import allowed_file, generate_file_name
 
 get_pages_pdf_route = Blueprint('get_pages_pdf_route', __name__)
 

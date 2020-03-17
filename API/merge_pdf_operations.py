@@ -1,38 +1,48 @@
 #!/use/bin/python
 
-import os, sys
+import os
+import sys
 from io import BytesIO
-from pathlib import Path
-from flask_config import app
+from zipfile import ZIP_DEFLATED, ZipFile
+
 from flask import send_file
-from PyPDF2 import PdfFileMerger
-from zipfile import ZipFile
+from PyPDF2 import PdfFileMerger, PdfFileReader, PdfFileWriter
 
-def merge_pdf(working_dir, filename):
-  os.chdir(working_dir)
-  extract_zip(filename)
-  merge_pdf_pages()
-  
-  memory_file = BytesIO()
-  with open('{}.pdf'.format('pages'), 'rb') as fin:
-    memory_file = BytesIO(fin.read())
+from flask_config import app
+
+
+def merge_pdf(zipfile, filename):
+  pages = extract_pages_from_zip(zipfile)
+  memory_file = add_pages_to_pdf(pages)
   memory_file.seek(0)
-  os.chdir(os.path.dirname(os.path.realpath(__file__)))
-  return send_file(memory_file, attachment_filename='{}.pdf'.format('pages'), as_attachment=True)
+  return send_file(memory_file, attachment_filename='{}.{}'.format(filename, 'pdf'), as_attachment=True)
 
-def extract_zip(filename):
-  with ZipFile('{}.zip'.format(filename), 'r') as zipObj:
+def extract_pages_from_zip(zipfile):
+  pages = []
+
+  with ZipFile(zipfile, 'r')as zipObj:
     list_of_file_names = zipObj.namelist()
     for file_name_in_zip in list_of_file_names:
-        if file_name_in_zip.endswith('.pdf'):
-            zipObj.extract(file_name_in_zip)
+      if file_name_in_zip.endswith('.pdf'):
+        with BytesIO(zipObj.read(file_name_in_zip)) as pdf_io_file:
+          actual_page = PdfFileReader(pdf_io_file)
+          for page in range(actual_page.getNumPages()):
+            page_as_bytesio = BytesIO()
+            pdf_writer = PdfFileWriter()
+            pdf_writer.addPage(actual_page.getPage(page))
+            pdf_writer.write(page_as_bytesio)
+            page_as_bytesio.seek(0)
+            pages.append(page_as_bytesio)
 
-def merge_pdf_pages():
+  return pages
+
+def add_pages_to_pdf(pages):
+  mem_pdf = BytesIO()
+
   pdf_merger = PdfFileMerger()
-  files = [f for f in os.listdir('.') if os.path.isfile(f)]
-  files.sort()
-  for f in files:
-    if ('.pdf' in f):
-      pdf_merger.append(f)
-  with open('pages.pdf', 'wb') as out:
-    pdf_merger.write(out)
+  
+  for page in pages:
+    pdf_merger.append(page)
+  
+  pdf_merger.write(mem_pdf)
+  return mem_pdf

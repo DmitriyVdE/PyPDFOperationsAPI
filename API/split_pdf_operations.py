@@ -1,11 +1,15 @@
 #!/use/bin/python
 
-import os, sys
+import os
+import sys
 from io import BytesIO
-from flask_config import app
+from zipfile import ZIP_DEFLATED, ZipFile
+
 from flask import send_file
 from PyPDF2 import PdfFileReader, PdfFileWriter
-from zipfile import ZipFile, ZIP_DEFLATED
+
+from flask_config import app
+
 
 def split_pdf(pdffile, filename):
   pdf = PdfFileReader(pdffile)
